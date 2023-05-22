@@ -25,7 +25,8 @@ def index():
     req_url = request.args.get('url')
     if not req_url:
         # return 'Illegal parameter: [url]'
-        return redirect(url_for('favicon.default'))
+        # return redirect(url_for('favicon.default'))
+        return render_template('index.html')
 
     entity = Favicon(req_url)
     if not entity.domain:
