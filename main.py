@@ -11,7 +11,7 @@ sys.path.append(os.path.dirname(
     os.path.dirname(os.path.abspath(__file__))
 ))
 
-logging.basicConfig(level=logging.INFO, format='[%(levelname)-7s] %(asctime)s -[%(filename)s:%(lineno)4d] %(message)s')
+logging.basicConfig(level=logging.INFO, format='[%(levelname)-7s] %(asctime)s -[%(filename)-10.10s:%(lineno)4d] %(message)s')
 
 app = Flask(__name__)
 

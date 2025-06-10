@@ -6,7 +6,7 @@ import time
 
 import bs4
 from bs4 import SoupStrainer
-from flask import request, make_response, redirect, url_for
+from flask import request, make_response, redirect, url_for, render_template
 
 from app_favicon.xtools import header, file_util
 from app_favicon.xtools.filetype import helpers, filetype
@@ -21,6 +21,7 @@ logger = logging.getLogger()
 
 
 @favicon_blu.route('/icon/')
+@favicon_blu.route('/')
 def index():
     req_url = request.args.get('url')
     if not req_url:
@@ -47,12 +48,19 @@ def index():
             icon_content, icon_type = entity.get_icon_file(icon_url)
         # 2. 从网站默认位置获取
         if not icon_content:
-            logger.info('-> get icon from ico: /favicon.ico')
+            logger.info('-> Get icon from ico: /favicon.ico')
             icon_content, icon_type = entity.get_icon_file('', True)
-            pass
+            # pass
+        # 3. 最后的尝试，gstatic.cn
+        if not icon_content:
+            api_url = 'https://t3.gstatic.cn/faviconV2?client=SOCIAL&fallback_opts=TYPE,SIZE,URL&type=FAVICON&size=128&url=%s' % entity.get_base_url()
+            logger.warning('-> Get icon from gstatic: %s' % api_url)
+            icon_content, icon_type = entity.get_icon_file(api_url)
+            # pass
+
         # 写入默认图标
         if not icon_content:
-            logger.error('-> get icon fail: %s' % entity.domain)
+            logger.error('-> Get icon fail: %s' % entity.domain)
             icon_content = _cached if _cached else default_icon_content
             icon_flag = False
         if icon_content:
@@ -142,11 +150,32 @@ def _get_link_rel(links, entity: Favicon, _rel: str):
     return _icon_url
 
 
-default_icon_md5 = [_get_file_md5(default_icon_path), '05231fb6b69aff47c3f35efe09c11ba0', '3ca64f83fdcf25135d87e08af65e68c9']
+default_icon_md5 = [_get_file_md5(default_icon_path),
+                    '05231fb6b69aff47c3f35efe09c11ba0',
+                    '3ca64f83fdcf25135d87e08af65e68c9',
+                    '43802bddf65eeaab643adb8265bfbada',
+                    'db470fd0b65c8c121477343c37f74f02',
+                    '52419f3f4f7d11945d272facc76c9e6a',
+                    'b8a0bf372c762e966cc99ede8682bc71',
+                    '71e9c45f29eadfa2ec5495302c22bcf6']
+
+
+def _is_default_icon_byte(file_content) -> bool:
+    try:
+        md5 = hashlib.md5(file_content).hexdigest().lower()
+        return md5 in default_icon_md5
+    except Exception as e:
+        print(e)
+    return False
 
 
 def _get_cache_icon(domain_md5: str):
-    return _get_cache_file(domain_md5)
+    _cached, cached_icon = _get_cache_file(domain_md5)
+    if _cached and _is_default_icon_byte(_cached):
+        _cached = default_icon_content
+    if cached_icon and _is_default_icon_byte(cached_icon):
+        cached_icon = default_icon_content
+    return _cached, cached_icon
 
 
 def _get_cache_file(domain_md5: str):

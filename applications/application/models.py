@@ -24,14 +24,17 @@ class Favicon:
     path = '/'
 
     def __init__(self, url: str):
-        url = url.lower()
-        self._parse(url)
-        if not self.domain_md5 and ('.' in url):
-            if url.startswith('//'):
-                self._parse('http:' + url)
-            elif not (url.startswith('https://') or url.startswith('http://')):
-                self._parse('http://' + url)
-        pass
+        try:
+            url = url.lower().strip()
+            self._parse(url)
+            if not self.domain_md5 and ('.' in url):
+                if url.startswith('//'):
+                    self._parse('http:' + url)
+                elif not (url.startswith('https://') or url.startswith('http://')):
+                    self._parse('http://' + url)
+        except Exception as e:
+            logger.error('Init error: ' + url)
+            logger.error(e)
 
     def _parse(self, url: str):
         try:
@@ -42,13 +45,16 @@ class Favicon:
             self.port = _url.port
             if self.scheme not in ['https', 'http']:
                 if self.scheme:
-                    logger.warning('-> error scheme: %s' % self.scheme)
+                    logger.warning('-> Unsupported scheme: %s' % self.scheme)
                 self.scheme = 'http'
             if self.domain and _check_url(self.domain) is None:
                 self.domain = None
             if self.domain:
                 self.domain_md5 = hashlib.md5(self.domain.encode("utf-8")).hexdigest()
         except Exception as e:
+            self.scheme = None
+            self.domain = None
+            logger.error('Parse url error: ' + url)
             logger.error(e)
 
     def _get_icon_url(self, icon_path: str):
@@ -81,8 +87,8 @@ class Favicon:
             _content, _ct = _req_get(self.icon_url)
             if _ct and helpers.is_image(_content):
                 if _content and len(_content) > 1 * 1024 * 1024:
-                    logger.warning('-> image is too large: %d' % len(_content))
-                    logger.warning('-> image is too large: %s' % self.domain)
+                    logger.warning('-> Image is too large: %d' % len(_content))
+                    logger.warning('-> Image is too large: %s' % self.domain)
                 return _content, filetype.guess_mime(_content) or _ct
         return None, None
 
@@ -95,11 +101,19 @@ class Favicon:
         _content, _ct = _req_get(_url)
         if _ct and ('text' in _ct or 'html' in _ct):
             if _content and len(_content) > 20 * 1024 * 1024:
-                logger.error('-> source is too large: %d' % len(_content))
-                logger.error('-> source is too large: %s' % _url)
+                logger.error('-> Source is too large: %d' % len(_content))
+                logger.error('-> Source is too large: %s' % _url)
                 return None
             return _content
         return None
+
+    def get_base_url(self):
+        if '.' not in self.domain:
+            return None
+        _url = self.scheme + '://' + self.domain
+        if self.port and self.port not in [80, 443]:
+            _url += ':' + str(self.port)
+        return _url
 
 
 def _req_get(url: str):
@@ -124,10 +138,10 @@ def _req_get(url: str):
                     else:
                         ct_type = _cts[0].strip()
                 if ct_length and int(ct_length) > 10 * 1024 * 1024:
-                    logger.warning('-> response is too large: %d' % int(ct_length))
+                    logger.warning('-> Response is too large: %d' % int(ct_length))
                 return req.content, ct_type
         else:
-            logger.error('-> request error: %d' % req.status_code)
+            logger.error('-> Request error: %d' % req.status_code)
     except (MaxRetryError, ReadTimeoutError, Exception):
         pass
     return None, None

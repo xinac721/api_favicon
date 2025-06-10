@@ -1,6 +1,11 @@
-Flask==2.0.3
-Flask-WTF==1.0.1
-bs4==0.0.1
-lxml==4.9.1
-psutil~=5.9.2
-uWSGI>=2.0.18
+--index https://mirrors.xinac.net/pypi/simple
+--extra-index-url https://pypi.tuna.tsinghua.edu.cn/simple
+
+Flask~=2.0.3
+Flask-WTF~=1.0.1
+requests~=2.32.0
+psutil~=5.9.8
+uWSGI>=2.0.29,<3.0.0
+bs4~=0.0.2
+lxml~=4.9.4
+beautifulsoup4~=4.9.3
