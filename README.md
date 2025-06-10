@@ -2,7 +2,7 @@
 
 - https://api.xinac.net/
 
-> python3 -m pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+`python3 -m pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple`
 
 - 启动方式：
   
@@ -27,3 +27,10 @@
   Apache License 2.0
 
   欢迎参与贡献代码，使用本代码请添加说明或友情链接。
+
+- **请注意**
+
+  1. 本站日均请求量30W+，使用本站服务的网站1000+，严禁用于非法网站！
+  2. 由于非法使用，本站已被云厂商数次警告，几近关停，请合法使用！
+  3. 本站目前非盈利，尽力运营，时间未知，欢迎自建。
+  4. 欢迎提交PR，欢迎赞助。
